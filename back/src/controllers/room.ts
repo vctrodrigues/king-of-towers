@@ -4,13 +4,11 @@ import crypto from "crypto";
 import { roomService } from "../service/room";
 import { DBService } from "../service/db";
 import { serialize } from "../utils/serialize";
-import { hideBoard } from "../utils/room";
 
 import { EventName } from "../enums/event";
 
 import type { Room } from "../types/room";
 import type { User } from "../types/user";
-import type { MovePayload } from "../types/move";
 
 export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
   const _roomService = roomService(dbService);
@@ -46,29 +44,12 @@ export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
         const room = _roomService.join(uid, user);
 
         console.log(`> Room joined: ${room.uid}`);
-        ws.send(serialize(EventName.RoomJoin, hideBoard(user.session, room)));
+        ws.send(serialize(EventName.RoomJoin, {}));
 
         return room;
       } catch (error) {
         console.log(`> Error joining room [${uid}]`);
         ws.send(serialize(EventName.RoomJoin, { error: error.message }, false));
-      }
-    },
-
-    move: ({ uid, move }: { uid: string; move: MovePayload }) => {
-      console.log(`> Moving in room [${uid}]`);
-
-      try {
-        const room = _roomService.move(uid, move);
-
-        console.log(`> Room moved: ${room.uid}`);
-        ws.send(serialize(EventName.RoomMove, hideBoard(move.session, room)));
-
-        return room;
-      } catch (error) {
-        console.log(error.message);
-        console.log(`> Error moving in room [${uid}]`);
-        ws.send(serialize(EventName.RoomMove, { error: error.message }, false));
       }
     },
 
@@ -79,7 +60,7 @@ export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
         const room = _roomService.ready(uid, user);
 
         console.log(`> User [${user.name}] is ready in room [${room.uid}]`);
-        ws.send(serialize(EventName.RoomReady, hideBoard(user.session, room)));
+        ws.send(serialize(EventName.RoomReady, {}));
 
         return room;
       } catch (error) {

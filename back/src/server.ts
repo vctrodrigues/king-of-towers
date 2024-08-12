@@ -4,7 +4,6 @@ import { IncomingMessage } from "http";
 import { appController } from "./controllers/app";
 import { userController } from "./controllers/user";
 import { roomController } from "./controllers/room";
-import { boardController } from "./controllers/board";
 
 import { dbService } from "./service/db";
 
@@ -45,7 +44,6 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
 
   const _appController = appController(ws);
   const _userController = userController(ws, userDB);
-  const _boardController = boardController(ws, userDB);
   const _roomController = roomController(ws, roomDB);
 
   if (pool[session]) {
