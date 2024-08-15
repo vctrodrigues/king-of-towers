@@ -17,6 +17,14 @@ export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
     create: ({ user }: { user: User }) => {
       console.log(`> Creating room`);
 
+      if (!user) {
+        console.log(`> User not found`);
+        ws.send(
+          serialize(EventName.RoomCreate, { error: "User not found" }, false)
+        );
+        return;
+      }
+
       const uid = crypto
         .createHmac("sha256", `${new Date().toUTCString()}`)
         .update(user.session)

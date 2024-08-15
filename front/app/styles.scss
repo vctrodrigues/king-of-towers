@@ -1,0 +1,14 @@
+.lobby {
+  background-color: var(--slate-a10);
+  background-image: url("/img/background.png");
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: luminosity;
+
+  .lobby-content {
+    .rt-ContainerInner {
+      height: 100%;
+      min-height: 400px;
+    }
+  }
+}

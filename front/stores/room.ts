@@ -6,7 +6,7 @@ import { Room } from "@/types/room";
 
 interface RoomState {
   room?: Room;
-  setRoom: (room: Room) => void;
+  setRoom: (room?: Room) => void;
   updateRoom: (room: Partial<Room>) => void;
 }
 

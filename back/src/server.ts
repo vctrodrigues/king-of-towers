@@ -97,39 +97,11 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
       pool[host].ws.send(serialize(EventName.RoomInviteAnswer, {}));
     }),
 
-    [EventName.RoomCreate]: interceptor<{ user: User; invite: string }>(
-      ({ user, invite }) => {
-        const room = _roomController.create({ user });
+    [EventName.RoomCreate]: interceptor<{ user: User }>(({ user }) => {
+      const room = _roomController.create({ user });
 
-        console.log(`> Inviting user [${invite}]`);
-
-        let hasUserFound = false;
-
-        Object.values(pool).forEach(({ ws, user: _user }) => {
-          if (!_user) {
-            return;
-          }
-
-          if (_user.code === invite) {
-            hasUserFound = true;
-
-            ws.send(serialize(EventName.RoomInvite, {}));
-          }
-        });
-
-        if (!hasUserFound) {
-          console.log(`> User [${invite}] not found`);
-
-          ws.send(
-            serialize(
-              EventName.RoomInviteAnswer,
-              { error: "User not found" },
-              false
-            )
-          );
-        }
-      }
-    ),
+      pool[session].ws.send(serialize(EventName.RoomCreate, room));
+    }),
 
     [EventName.RoomReady]: interceptor<{ uid: string; user: User }>(
       ({ uid, user }) => {
