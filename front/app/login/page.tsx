@@ -1,16 +1,51 @@
+"use client";
+
+import { useEffect } from "react";
+import { v4 as uuid } from "uuid";
+
 import { PersonIcon } from "@radix-ui/react-icons";
-import {
-  Button,
-  Container,
-  Flex,
-  Heading,
-  Text,
-  TextField,
-} from "@radix-ui/themes";
+import { Button, Flex, Heading, Text, TextField } from "@radix-ui/themes";
+import { useForm } from "react-hook-form";
+
+import { userService } from "@/services/user";
+import { useUserStore } from "@/stores/user";
 
 import "./styles.scss";
+import { useRouter } from "next/navigation";
+
+interface LoginFormData {
+  name: string;
+}
 
 export default function Login() {
+  const user = useUserStore((state) => state.user);
+  const router = useRouter();
+
+  const { setUser } = useUserStore();
+  const { register, handleSubmit } = useForm<LoginFormData>();
+
+  const onLoginSubmit = (data: LoginFormData) => {
+    userService.create(data.name);
+  };
+
+  useEffect(() => {
+    if (user) {
+      router.push("/");
+    }
+  }, [router, user]);
+
+  useEffect(() => {
+    const session = sessionStorage.getItem("id") ?? uuid();
+
+    sessionStorage.clear();
+    sessionStorage.setItem("id", session);
+
+    userService.initialize({
+      session,
+      setUser,
+    });
+  }, [setUser]);
+
   return (
     <Flex
       direction="row"
@@ -26,10 +61,23 @@ export default function Login() {
           gap="2"
           className="bg-slate-900/50 border h-fit w-full max-w-[400px] border-blue-400 rounded-md"
         >
-          <Heading as="h1">Bem-vindo</Heading>
-          <Text>Insira seu nome e entre no jogo.</Text>
-          <Flex direction="row" gap="2">
-            <TextField.Root placeholder="Seu nome" mb="2" className="w-full">
+          <Heading as="h1" className="font-game">
+            Bem-vindo
+          </Heading>
+          <Text className="text-slate-500">
+            Insira seu nome e entre no jogo.
+          </Text>
+
+          <form
+            className="flex w-full gap-2"
+            onSubmit={handleSubmit(onLoginSubmit)}
+          >
+            <TextField.Root
+              placeholder="Seu nome"
+              mb="2"
+              className="w-full"
+              {...register("name", { required: true })}
+            >
               <TextField.Slot>
                 <PersonIcon width={16} height={16} />
               </TextField.Slot>
@@ -37,7 +85,7 @@ export default function Login() {
             <Button type="submit" variant="classic">
               Entrar
             </Button>
-          </Flex>
+          </form>
         </Flex>
       </Flex>
       <Flex className="login-background w-[50%] h-[100vh]"></Flex>
