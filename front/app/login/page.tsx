@@ -2,16 +2,17 @@
 
 import { useEffect } from "react";
 import { v4 as uuid } from "uuid";
+import { useRouter } from "next/navigation";
 
 import { PersonIcon } from "@radix-ui/react-icons";
 import { Button, Flex, Heading, Text, TextField } from "@radix-ui/themes";
 import { useForm } from "react-hook-form";
 
-import { userService } from "@/services/user";
+import { UserService } from "@/services/user";
 import { useUserStore } from "@/stores/user";
+import { useWebSocket } from "@/context/WebSocketContext";
 
 import "./styles.scss";
-import { useRouter } from "next/navigation";
 
 interface LoginFormData {
   name: string;
@@ -22,7 +23,14 @@ export default function Login() {
   const router = useRouter();
 
   const { setUser } = useUserStore();
+  const { ws } = useWebSocket();
+
   const { register, handleSubmit } = useForm<LoginFormData>();
+
+  const userService = new UserService({
+    ws,
+    setUser,
+  });
 
   const onLoginSubmit = (data: LoginFormData) => {
     userService.create(data.name);
@@ -33,18 +41,6 @@ export default function Login() {
       router.push("/");
     }
   }, [router, user]);
-
-  useEffect(() => {
-    const session = sessionStorage.getItem("id") ?? uuid();
-
-    sessionStorage.clear();
-    sessionStorage.setItem("id", session);
-
-    userService.initialize({
-      session,
-      setUser,
-    });
-  }, [setUser]);
 
   return (
     <Flex

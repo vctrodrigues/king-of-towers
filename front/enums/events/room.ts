@@ -3,6 +3,7 @@ export enum RoomEvents {
   Join = "room:join",
   Invite = "room:invite",
   Answer = "room:invite:answer",
+  Update = "room:update",
   Ready = "room:ready",
   Start = "room:start",
   Finish = "room:finish",

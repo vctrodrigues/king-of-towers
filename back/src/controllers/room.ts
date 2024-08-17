@@ -17,10 +17,20 @@ export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
     create: ({ user }: { user: User }) => {
       console.log(`> Creating room`);
 
+      if (!user) {
+        console.log(`> User not found`);
+        ws.send(
+          serialize(EventName.RoomCreate, { error: "User not found" }, false)
+        );
+        return;
+      }
+
       const uid = crypto
         .createHmac("sha256", `${new Date().toUTCString()}`)
         .update(user.session)
-        .digest("hex");
+        .digest("hex")
+        .replace(/[^0-9]/gm, "")
+        .substring(0, 6);
 
       try {
         const room = _roomService.create(uid, user);
@@ -44,7 +54,7 @@ export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
         const room = _roomService.join(uid, user);
 
         console.log(`> Room joined: ${room.uid}`);
-        ws.send(serialize(EventName.RoomJoin, {}));
+        ws.send(serialize(EventName.RoomJoin, room));
 
         return room;
       } catch (error) {
@@ -60,7 +70,7 @@ export const roomController = (ws: WebSocket, dbService: DBService<Room>) => {
         const room = _roomService.ready(uid, user);
 
         console.log(`> User [${user.name}] is ready in room [${room.uid}]`);
-        ws.send(serialize(EventName.RoomReady, {}));
+        ws.send(serialize(EventName.RoomUpdate, room));
 
         return room;
       } catch (error) {
