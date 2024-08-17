@@ -1,7 +1,7 @@
 import { UserRoomState } from "../enums/room";
 import { User } from "./user";
 
-type UserRoomConfig = {
+export type UserRoomConfig = {
   role: "player" | "spectator";
   state: UserRoomState;
 } & User;

@@ -25,6 +25,8 @@ export class UserService {
     };
 
     const retrieveUser = <Data = User>(data: WebSocketData<Data>) => {
+      console.log(`hello`);
+
       if (!data.success) {
         this.config.setUser(undefined);
         return;

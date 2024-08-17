@@ -80,9 +80,13 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
       ({ user, uid }) => {
         const room = _roomController.join({ user, uid });
 
-        const host = room.users[0].session;
+        room.users.forEach(({ session }) => {
+          if (session === user.session) {
+            return;
+          }
 
-        pool[host].ws.send(serialize(EventName.RoomInviteAnswer, {}));
+          pool[session].ws.send(serialize(EventName.RoomUpdate, room));
+        });
       }
     ),
 
@@ -107,11 +111,24 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
       ({ uid, user }) => {
         const room = _roomController.ready({ uid, user });
 
-        if (room.users.every(({ state }) => state === RoomState.Ready)) {
+        room.users.forEach(({ session }) => {
+          if (session === user.session) {
+            return;
+          }
+
+          pool[session].ws.send(serialize(EventName.RoomUpdate, room));
+        });
+
+        if (
+          room.users.every(
+            ({ role, state }) =>
+              role === UserRole.Player && state === RoomState.Ready
+          )
+        ) {
           _roomController.start({ uid: room.uid });
 
           room.users.forEach(({ session }) => {
-            pool[session].ws.send(serialize(EventName.RoomStart, {}));
+            pool[session].ws.send(serialize(EventName.RoomStart, room));
           });
         }
       }

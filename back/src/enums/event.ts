@@ -5,6 +5,7 @@ export enum EventName {
   RoomCreate = "room:create",
   RoomJoin = "room:join",
   RoomMove = "room:move",
+  RoomUpdate = "room:update",
   RoomInvite = "room:invite",
   RoomInviteAnswer = "room:invite:answer",
   RoomReady = "room:ready",

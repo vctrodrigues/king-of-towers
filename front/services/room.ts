@@ -10,6 +10,8 @@ import type { User } from "@/types/user";
 interface RoomServiceConfig {
   ws: WebSocketService;
   setRoom: (room?: Room) => void;
+  start: () => void;
+  finish: () => void;
 }
 
 export class RoomService {
@@ -22,18 +24,42 @@ export class RoomService {
         return;
       }
 
-      this.config.setRoom(data.data as Room);
+      if (!data.data) {
+        return;
+      }
+
+      this.config.setRoom(data.data);
+    };
+
+    const startRoom = (data: WebSocketData<Room>) => {
+      if (!data.success) {
+        console.error(data.error);
+        return;
+      }
+
+      if (!data.data) {
+        return;
+      }
+
+      this.config.setRoom(data.data);
+      this.config.start();
     };
 
     this.config.ws.on(RoomEvents.Join, setRoom);
     this.config.ws.on(RoomEvents.Create, setRoom);
+    this.config.ws.on(RoomEvents.Update, setRoom);
+    this.config.ws.on(RoomEvents.Start, startRoom);
   }
 
   create(user: User) {
     this.config.ws.send(RoomEvents.Create, { user });
   }
 
-  join(code: string) {
-    this.config.ws.send(RoomEvents.Join, { code });
+  join(user: User, uid: string) {
+    this.config.ws.send(RoomEvents.Join, { user, uid });
+  }
+
+  ready(user: User, uid: string) {
+    this.config.ws.send(RoomEvents.Ready, { user, uid });
   }
 }

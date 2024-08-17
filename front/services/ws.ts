@@ -16,8 +16,6 @@ export class WebSocketService {
   }
 
   on(event: string, callback: Function) {
-    console.log(`Registering callback for event: ${event}`);
-
     if (!this.socket) {
       console.error("Socket not initialized");
       return;
