@@ -33,7 +33,7 @@ export const Header = ({ room, user, isStarted, onLogout }: HeaderProps) => {
           {room && user && (
             <Flex align="center" justify="between" width="100%" pl="8">
               {isStarted ? (
-                <Flex>
+                <Flex align="center">
                   {spectators.length > 0 && (
                     <Flex direction="column" gap="1" mr="3">
                       <Text size="1" weight="bold">
@@ -60,7 +60,7 @@ export const Header = ({ room, user, isStarted, onLogout }: HeaderProps) => {
                   )}
                 </Flex>
               ) : (
-                <Flex>
+                <Flex align="center">
                   <Text size="1" mr="4" className="uppercase">
                     ID da sala
                   </Text>

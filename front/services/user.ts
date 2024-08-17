@@ -15,7 +15,7 @@ export class UserService {
   constructor(private config: UserServiceConfig) {
     this.config = config;
 
-    const createUser = <Data = User>(data: WebSocketData<Data>) => {
+    const createUser = (data: WebSocketData<User>) => {
       if (!data.success) {
         console.error(data.error);
         return;
@@ -24,7 +24,7 @@ export class UserService {
       this.config.setUser(data.data as User);
     };
 
-    const retrieveUser = <Data = User>(data: WebSocketData<Data>) => {
+    const retrieveUser = (data: WebSocketData<User>) => {
       console.log(`hello`);
 
       if (!data.success) {
@@ -35,7 +35,7 @@ export class UserService {
       this.config.setUser(data.data as User);
     };
 
-    const deleteUser = <Data = User>(data: WebSocketData<Data>) => {
+    const deleteUser = (data: WebSocketData<User>) => {
       if (!data.success) {
         console.error(data.error);
         return;

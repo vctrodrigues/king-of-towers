@@ -92,14 +92,18 @@ export default function Home() {
   }, [router, user]);
 
   return (
-    <Flex direction="column" className="lobby" minHeight="100vh">
+    <Flex direction="column" className="home" minHeight="100vh">
       <Header
         user={user}
         room={room}
         isStarted={isStarted}
         onLogout={onLogout}
       />
-      <Container className="lobby-content py-6 px-10" height="400px">
+      <Container
+        className="home-content py-6 px-10"
+        height="400px"
+        overflow="auto"
+      >
         {user ? (
           room ? (
             isStarted ? (

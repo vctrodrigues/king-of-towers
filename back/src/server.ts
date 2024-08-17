@@ -13,21 +13,27 @@ import { deserialize, serialize } from "./utils/serialize";
 
 import { EventName } from "./enums/event";
 
-import { SECOND_IN_MILLIS, TIMEOUT_LIMIT } from "./const";
+import { SECOND_IN_MILLIS, TIMEOUT_LIMIT, UPDATING_INTERVAL } from "./const";
 
 import type { User } from "./types/user";
 import type { Room } from "./types/room";
 import { RoomState } from "./enums/room";
 import { UserRole } from "./enums/role";
+import { Game } from "game";
+import { gameController } from "./controllers/game";
 
 const wss = new WebSocketServer({ port: 8080 });
 
 console.log("> Server started");
 
 const userDB = dbService<User>("code");
-const roomDB = dbService<Room>("uid");
-
 console.log("> User DB initialized");
+
+const roomDB = dbService<Room>("uid");
+console.log("> Room DB initialized");
+
+const gameDB = dbService<Game>("room");
+console.log("> Game DB initialized");
 
 const pool: Record<
   string,
@@ -35,6 +41,7 @@ const pool: Record<
     ws: WebSocket;
     user: User;
     timeout: NodeJS.Timeout;
+    _gameController: ReturnType<typeof gameController>;
   }
 > = {};
 
@@ -45,6 +52,7 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
   const _appController = appController(ws);
   const _userController = userController(ws, userDB);
   const _roomController = roomController(ws, roomDB);
+  const _gameController = gameController(ws, gameDB);
 
   if (pool[session]) {
     console.log(`> Reconnected [${session}]`);
@@ -59,6 +67,7 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     ws,
     user: null,
     timeout: null,
+    _gameController,
   };
 
   const EVENTS = {
@@ -127,9 +136,54 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         ) {
           _roomController.start({ uid: room.uid });
 
+          const game = _gameController.create({
+            room: room.uid,
+            users: room.users,
+          });
+
           room.users.forEach(({ session }) => {
             pool[session].ws.send(serialize(EventName.RoomStart, room));
+            pool[session].ws.send(serialize(EventName.GameCreate, game));
           });
+
+          setInterval(() => {
+            const [user1, user2] = room.users.filter(
+              ({ role }) => role === UserRole.Player
+            );
+
+            let _game = pool[user1.session]._gameController.update({
+              game,
+              user: user1.session,
+              opponent: user2.session,
+            });
+
+            _game = pool[user2.session]._gameController.update({
+              game,
+              user: user2.session,
+              opponent: user1.session,
+            });
+
+            // check if game is over
+            if (_game.users[user1.session].kingTower.life <= 0) {
+              pool[user1.session].ws.send(
+                serialize(EventName.GameOver, {
+                  room,
+                  loser: user1.session,
+                  winner: user2,
+                })
+              );
+            } else if (_game.users[user2.session].kingTower.life <= 0) {
+              pool[user2.session].ws.send(
+                serialize(EventName.GameOver, {
+                  room,
+                  loser: user2.session,
+                  winner: user1,
+                })
+              );
+            }
+
+            _gameController.destroy({ room: room.uid });
+          }, UPDATING_INTERVAL);
         }
       }
     ),

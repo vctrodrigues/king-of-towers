@@ -13,7 +13,7 @@ interface RoomProps {
 
 export const GameRoom = ({ user, room, userState, onStart }: RoomProps) => {
   return (
-    <Flex direction="column" gap="2">
+    <Flex direction="column" align="start" gap="2">
       <Text mb="4">Jogadores</Text>
       {room.users.map((user) => (
         <UserCard key={user.code} user={user} />

@@ -10,7 +10,6 @@ export const roomService = (dbService: DBService<Room>) => ({
   create: (uid: string, user: User) => {
     const room: Room = {
       uid,
-      turn: user.session,
       users: [
         {
           ...user,
