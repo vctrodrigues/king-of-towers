@@ -81,7 +81,7 @@ export const Lobby = ({
         </Flex>
       </Flex>
       <Flex>
-        <Chat />
+        <Chat user={user}/>
       </Flex>
     </Flex>
   );
