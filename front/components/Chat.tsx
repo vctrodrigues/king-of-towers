@@ -6,6 +6,9 @@ import { Message } from "@/types/chat";
 
 export const Chat = () => {
   const messages: Message[] = []; // to remove
+
+  const sendMessage = () => {};
+
   return (
     <Flex
       direction="column"
@@ -28,7 +31,7 @@ export const Chat = () => {
         <TextField.Root>
           <TextField.Slot></TextField.Slot>
         </TextField.Root>
-        <Button>Enviar</Button>
+        <Button onClick={() => {}}>Enviar</Button>
       </Flex>
     </Flex>
   );

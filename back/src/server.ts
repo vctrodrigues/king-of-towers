@@ -4,6 +4,7 @@ import { IncomingMessage } from "http";
 import { appController } from "./controllers/app";
 import { userController } from "./controllers/user";
 import { roomController } from "./controllers/room";
+import { gameController } from "./controllers/game";
 
 import { dbService } from "./service/db";
 
@@ -13,14 +14,20 @@ import { deserialize, serialize } from "./utils/serialize";
 
 import { EventName } from "./enums/event";
 
-import { SECOND_IN_MILLIS, TIMEOUT_LIMIT, UPDATING_INTERVAL } from "./const";
+import {
+  COINS_FARM_RATE,
+  SECOND_IN_MILLIS,
+  TIMEOUT_LIMIT,
+  UPDATING_INTERVAL,
+} from "./const";
+
+import { RoomState } from "./enums/room";
+import { UserRole } from "./enums/role";
 
 import type { User } from "./types/user";
 import type { Room } from "./types/room";
-import { RoomState } from "./enums/room";
-import { UserRole } from "./enums/role";
-import { Game } from "game";
-import { gameController } from "./controllers/game";
+import type { Game } from "./types/game";
+import type { DefenseTowerType } from "./types/towers";
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -146,47 +153,181 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
             pool[session].ws.send(serialize(EventName.GameCreate, game));
           });
 
-          setInterval(() => {
+          let interval: NodeJS.Timeout = null;
+
+          interval = setInterval(() => {
             const [user1, user2] = room.users.filter(
               ({ role }) => role === UserRole.Player
             );
 
-            let _game = pool[user1.session]._gameController.update({
+            let _game = pool[user1.session]._gameController.earn({
               game,
               user: user1.session,
-              opponent: user2.session,
+              amount: COINS_FARM_RATE,
             });
 
-            _game = pool[user2.session]._gameController.update({
+            pool[user1.session].ws.send(
+              serialize(EventName.GameEarn, {
+                game: _game,
+                user: user1,
+                amount: COINS_FARM_RATE,
+              })
+            );
+
+            _game = pool[user2.session]._gameController.earn({
               game,
               user: user2.session,
-              opponent: user1.session,
+              amount: COINS_FARM_RATE,
             });
 
+            pool[user2.session].ws.send(
+              serialize(EventName.GameEarn, {
+                game: _game,
+                user: user2,
+                amount: COINS_FARM_RATE,
+              })
+            );
+
             // check if game is over
+            let loser = null;
+            let winner = null;
+
             if (_game.users[user1.session].kingTower.life <= 0) {
+              loser = user1.session;
+              winner = user2.session;
+            } else if (_game.users[user2.session].kingTower.life <= 0) {
+              loser = user2.session;
+              winner = user1.session;
+            }
+
+            if (winner) {
               pool[user1.session].ws.send(
                 serialize(EventName.GameOver, {
                   room,
-                  loser: user1.session,
-                  winner: user2,
+                  win: user1.session === winner,
+                  winner,
+                  loser,
                 })
               );
-            } else if (_game.users[user2.session].kingTower.life <= 0) {
+
               pool[user2.session].ws.send(
                 serialize(EventName.GameOver, {
                   room,
-                  loser: user2.session,
-                  winner: user1,
+                  win: user2.session === winner,
+                  winner,
+                  loser,
                 })
               );
-            }
 
-            _gameController.destroy({ room: room.uid });
+              _gameController.destroy({ room: room.uid });
+              clearInterval(interval);
+            }
           }, UPDATING_INTERVAL);
         }
       }
     ),
+
+    [EventName.GameBuy]: interceptor<{
+      uid: string;
+      user: User;
+      slot: number;
+      type: DefenseTowerType;
+    }>(({ uid, user, slot, type }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+      const payload = _gameController.buyDefenseTower({
+        game,
+        user: user.session,
+        slot,
+        type,
+      });
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameBuy, {
+            ...payload,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.GameAttack]: interceptor<{
+      uid: string;
+      user: User;
+      damage: number;
+    }>(({ uid, user, damage }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+
+      const opponent = room.users.find(
+        ({ session }) => session !== user.session
+      );
+
+      if (!opponent) {
+        return;
+      }
+
+      const payload = _gameController.attack({
+        game,
+        opponent: opponent.session,
+        damage,
+      });
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameAttack, {
+            ...payload,
+            damage,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.GameUpgradeDefense]: interceptor<{
+      uid: string;
+      user: User;
+      slot: number;
+    }>(({ uid, user, slot }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+      const payload = _gameController.upgradeDefenseTower({
+        game,
+        user: user.session,
+        slot,
+      });
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameUpgradeDefense, {
+            ...payload,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.GameUpgradeKing]: interceptor<{
+      uid: string;
+      user: User;
+    }>(({ uid, user }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+      const payload = _gameController.upgradeKingTower({
+        game,
+        user: user.session,
+      });
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameUpgradeKing, {
+            ...payload,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
   };
 
   ws.on("message", (payload: string) => {

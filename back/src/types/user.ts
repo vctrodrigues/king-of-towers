@@ -1,6 +1,5 @@
 import { Mob } from "mobs";
-import { Path } from "game";
-import { DeffenseTower, KingTower } from "towers";
+import { DefenseTower, KingTower } from "towers";
 
 export type User = {
   session: string;
@@ -10,8 +9,7 @@ export type User = {
 
 export type UserAttributes = {
   coins: number;
-  path: Path;
   kingTower: KingTower;
-  deffenses: Record<string, DeffenseTower>;
+  defenses: Record<string, DefenseTower>;
   mobs: Record<string, Mob>;
 };

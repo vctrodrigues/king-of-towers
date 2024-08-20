@@ -8,7 +8,7 @@ import type { WebSocketData } from "@/types/ws";
 
 interface UserServiceConfig {
   ws: WebSocketService;
-  setUser: (user?: User) => void;
+  setUser: (user: User) => void;
 }
 
 export class UserService {
@@ -25,10 +25,8 @@ export class UserService {
     };
 
     const retrieveUser = (data: WebSocketData<User>) => {
-      console.log(`hello`);
-
       if (!data.success) {
-        this.config.setUser(undefined);
+        this.config.setUser({} as User);
         return;
       }
 
@@ -41,7 +39,7 @@ export class UserService {
         return;
       }
 
-      this.config.setUser(undefined);
+      this.config.setUser({} as User);
     };
 
     this.config.ws.on(UserEvents.Get, retrieveUser);

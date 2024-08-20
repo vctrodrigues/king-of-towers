@@ -86,7 +86,7 @@ export default function Home() {
   }, [room, roomService, user]);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !user.code) {
       router.push("/login");
     }
   }, [router, user]);
@@ -104,8 +104,8 @@ export default function Home() {
         height="400px"
         overflow="auto"
       >
-        {user ? (
-          room ? (
+        {user.code ? (
+          room.uid ? (
             isStarted ? (
               <GameBoard />
             ) : (

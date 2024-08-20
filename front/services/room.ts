@@ -9,7 +9,7 @@ import type { User } from "@/types/user";
 
 interface RoomServiceConfig {
   ws: WebSocketService;
-  setRoom: (room?: Room) => void;
+  setRoom: (room: Room) => void;
   start: () => void;
   finish: () => void;
 }
