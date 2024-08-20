@@ -20,7 +20,6 @@ export const setupEvents = (game: KOTEngine, gameService: GameService) => {
   };
 
   const shot = (event: GameEngineEvents[GameEvents.Fire]) => {
-    console.log(event);
     const slot = event.slot;
     const tower = event.isOpponent
       ? game.getOpponentDefense(slot)
@@ -63,7 +62,7 @@ export const setupEvents = (game: KOTEngine, gameService: GameService) => {
 
     _fire.pos = vec(
       towerActor.pos.x + direction * 10,
-      towerActor.pos.y + (event.isOpponent ? towerActor.height + 15 : -55)
+      towerActor.pos.y + (event.isOpponent ? towerActor.height + 35 : -75)
     );
 
     _fire.vel = vec(0, direction * 300);

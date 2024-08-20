@@ -12,6 +12,7 @@ export const setupFire = (game: KOTEngine, sprites: Record<string, Sprite>) => {
   const archerFire = new Actor({
     x: 0,
     y: 0,
+    z: 99,
     radius: 10,
     color: Color.Blue,
     anchor: vec(0.5, 0.5),
@@ -44,6 +45,13 @@ export const setupFire = (game: KOTEngine, sprites: Record<string, Sprite>) => {
       radius: 10,
     }),
   });
+
+  sprites.fire.width = 20;
+  sprites.fire.height = 20;
+
+  archerFire.graphics.use(sprites.fire);
+  trapFire.graphics.use(sprites.fire);
+  mageFire.graphics.use(sprites.fire);
 
   game.registerActor("archerFire", archerFire);
   game.registerActor("mageFire", mageFire);

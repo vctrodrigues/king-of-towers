@@ -5,7 +5,7 @@ import { Color } from "excalibur";
 
 import { useWebSocket } from "@/context/WebSocketContext";
 
-import { loadSprites } from "@/game/sprites";
+import { loadSprites, setupBackground } from "@/game/sprites";
 import { setupLifeBar, setupOpponentsLifeBar } from "@/game/actors/life";
 import { setupCoins } from "@/game/actors/coins";
 import { setupShop } from "@/game/actors/shop";
@@ -40,8 +40,10 @@ async function start(
 
   const { loader, resources, sprites } = loadSprites();
 
-  // await game.start(loader);
+  await game.start(loader);
+  game.sprites = sprites;
 
+  setupBackground(game, sprites);
   setupLifeBar(game);
   setupOpponentsLifeBar(game);
   setupCoins(game);
@@ -52,8 +54,6 @@ async function start(
   setupOpponentTowers(game, sprites);
 
   setupEvents(game, gameService);
-
-  game.start();
 }
 
 export const GameEngine = () => {

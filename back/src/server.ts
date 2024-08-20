@@ -242,6 +242,10 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         type,
       });
 
+      if (!payload) {
+        return;
+      }
+
       room.users.forEach(({ session }) => {
         pool[session].ws.send(
           serialize(EventName.GameBuy, {
@@ -274,6 +278,10 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         damage,
       });
 
+      if (!payload) {
+        return;
+      }
+
       room.users.forEach(({ session }) => {
         pool[session].ws.send(
           serialize(EventName.GameAttack, {
@@ -298,6 +306,10 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         slot,
       });
 
+      if (!payload) {
+        return;
+      }
+
       room.users.forEach(({ session }) => {
         pool[session].ws.send(
           serialize(EventName.GameUpgradeDefense, {
@@ -318,6 +330,10 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         game,
         user: user.session,
       });
+
+      if (!payload) {
+        return;
+      }
 
       room.users.forEach(({ session }) => {
         pool[session].ws.send(

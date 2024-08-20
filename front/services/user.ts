@@ -4,7 +4,7 @@ import { WebSocketService } from "./ws";
 import { UserEvents } from "@/enums/events/user";
 
 import type { User } from "@/types/user";
-import type { WebSocketData } from "@/types/ws";
+import type { WebSockerError, WebSocketData } from "@/types/ws";
 
 interface UserServiceConfig {
   ws: WebSocketService;
@@ -17,7 +17,7 @@ export class UserService {
 
     const createUser = (data: WebSocketData<User>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
@@ -35,7 +35,7 @@ export class UserService {
 
     const deleteUser = (data: WebSocketData<User>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 

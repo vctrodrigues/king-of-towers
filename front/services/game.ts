@@ -1,10 +1,4 @@
 import {
-  GameAttackPayload,
-  GameBuyPayload,
-  GameOverPayload,
-  GameEarnPayload,
-  GameUpgradeDefenseTowerPayload,
-  GameUpgradeKingTowerPayload,
   GameEarnResponse,
   GameBuyResponse,
   GameUpgradeKingTowerResponse,
@@ -13,7 +7,7 @@ import {
   GameOverResponse,
 } from "@/types/game";
 import { WebSocketService } from "./ws";
-import { WebSocketData } from "@/types/ws";
+import { WebSockerError, WebSocketData } from "@/types/ws";
 import { GameEvents } from "@/enums/events/game";
 import { User } from "@/types/user";
 import { DefenseTowerType } from "@/types/towers";
@@ -36,86 +30,88 @@ export class GameService {
   constructor(private config: GameServiceConfig) {
     this.config = config;
 
-    const earnCoins = (data: WebSocketData<GameEarnPayload>) => {
+    const earnCoins = (data: WebSocketData<GameEarnResponse>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.earn(data.data);
+      this.config.earn(data.data as GameEarnResponse);
     };
 
-    const attack = (data: WebSocketData<GameAttackPayload>) => {
+    const attack = (data: WebSocketData<GameAttackResponse>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.attack(data.data);
+      this.config.attack(data.data as GameAttackResponse);
     };
 
     const upgradeKingTower = (
-      data: WebSocketData<GameUpgradeKingTowerPayload>
+      data: WebSocketData<GameUpgradeKingTowerResponse>
     ) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.upgradeKingTower(data.data);
+      this.config.upgradeKingTower(data.data as GameUpgradeKingTowerResponse);
     };
 
     const upgradeDefenseTower = (
-      data: WebSocketData<GameUpgradeDefenseTowerPayload>
+      data: WebSocketData<GameUpgradeDefenseTowerResponse>
     ) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.upgradeDefenseTower(data.data);
+      this.config.upgradeDefenseTower(
+        data.data as GameUpgradeDefenseTowerResponse
+      );
     };
 
-    const buy = (data: WebSocketData<GameBuyPayload>) => {
+    const buy = (data: WebSocketData<GameBuyResponse>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.buy(data.data);
+      this.config.buy(data.data as GameBuyResponse);
     };
 
     const gameOver = (data: WebSocketData<GameOverResponse>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.gameOver(data.data);
+      this.config.gameOver(data.data as GameOverResponse);
     };
 
     this.config.ws.on(GameEvents.Over, gameOver);

@@ -66,6 +66,7 @@ export const useGameStore = create<GameState>()(
         return;
       }
 
+      console.log(`cheguei aqui`);
       get().engine.events.emit(GameEvents.UpgradeKing, response);
     },
 

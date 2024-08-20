@@ -72,7 +72,7 @@ export const gameService = (dbService: DBService<Game>) => ({
     const price = defenseTowerAttributes[type][0].price;
 
     if (game.users[user].coins < price) {
-      return;
+      throw new Error("Not enough coins");
     }
 
     game.users[user].coins -= price;
@@ -98,18 +98,18 @@ export const gameService = (dbService: DBService<Game>) => ({
     const defense = game.users[user].defenses[defenseId];
 
     if (!defense) {
-      return game;
+      throw new Error("Defense tower not found");
     }
 
     if (defense.level >= MAX_DEFFENSE_TOWER_LEVEL) {
-      return game;
+      throw new Error("Defense tower already at max level");
     }
 
     const nextLevel = defense.level + 1;
-    const price = defenseTowerAttributes[defense.type][nextLevel].price;
+    const price = defenseTowerAttributes[defense.type][nextLevel - 1].price;
 
     if (game.users[user].coins < price) {
-      return game;
+      throw new Error("Not enough coins");
     }
 
     game.users[user].coins -= price;
@@ -130,14 +130,14 @@ export const gameService = (dbService: DBService<Game>) => ({
     const kingTower = game.users[user].kingTower;
 
     if (kingTower.level >= MAX_DEFFENSE_TOWER_LEVEL) {
-      return game;
+      throw new Error("King tower already at max level");
     }
 
     const nextLevel = kingTower.level + 1;
     const price = kingTowerAttributes[nextLevel].price;
 
     if (game.users[user].coins < price) {
-      return game;
+      throw new Error("Not enough coins");
     }
 
     game.users[user].coins -= price;

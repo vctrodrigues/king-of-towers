@@ -4,7 +4,7 @@ import { WebSocketService } from "./ws";
 import { RoomEvents } from "@/enums/events/room";
 
 import type { Room } from "@/types/room";
-import type { WebSocketData } from "@/types/ws";
+import type { WebSockerError, WebSocketData } from "@/types/ws";
 import type { User } from "@/types/user";
 
 interface RoomServiceConfig {
@@ -20,28 +20,28 @@ export class RoomService {
 
     const setRoom = (data: WebSocketData<Room>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.setRoom(data.data);
+      this.config.setRoom(data.data as Room);
     };
 
     const startRoom = (data: WebSocketData<Room>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      if (!data.data) {
+      if ((data.data as WebSockerError).error) {
         return;
       }
 
-      this.config.setRoom(data.data);
+      this.config.setRoom(data.data as Room);
       this.config.start();
     };
 

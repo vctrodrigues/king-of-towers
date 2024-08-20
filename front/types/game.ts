@@ -9,6 +9,7 @@ import {
   Label,
   Polygon,
   Scene,
+  Sprite,
   TextAlign,
   vec,
 } from "excalibur";
@@ -159,6 +160,8 @@ const INITIAL_USER_ATTRS: UserAttributes = {
 };
 
 export class KOTEngine extends Engine {
+  public sprites: Record<string, Sprite> = {};
+
   public isShopOpen = false;
   public shopType: DefenseTowerType = DefenseTowerType.Archer;
 
@@ -235,18 +238,16 @@ export class KOTEngine extends Engine {
       return;
     }
 
-    const color = {
-      [DefenseTowerType.Archer]: Color.Blue,
-      [DefenseTowerType.Mage]: Color.Red,
-      [DefenseTowerType.Trap]: Color.Yellow,
+    const sprite = {
+      [DefenseTowerType.Archer]: this.sprites.acherTower,
+      [DefenseTowerType.Mage]: this.sprites.mageTower,
+      [DefenseTowerType.Trap]: this.sprites.canonTower,
     }[type];
 
-    this.getActor(actorId).graphics.use(
-      new Polygon({
-        points: [vec(0, 0), vec(40, 0), vec(40, 40), vec(0, 40)],
-        color,
-      })
-    );
+    sprite.width = 40;
+    sprite.height = 40;
+
+    this.getActor(actorId).graphics.use(sprite);
 
     this.setDefense(slot, {
       type,
@@ -267,18 +268,16 @@ export class KOTEngine extends Engine {
       return;
     }
 
-    const color = {
-      [DefenseTowerType.Archer]: Color.Blue,
-      [DefenseTowerType.Mage]: Color.Red,
-      [DefenseTowerType.Trap]: Color.Yellow,
+    const sprite = {
+      [DefenseTowerType.Archer]: this.sprites.acherTower,
+      [DefenseTowerType.Mage]: this.sprites.mageTower,
+      [DefenseTowerType.Trap]: this.sprites.canonTower,
     }[type];
 
-    this.getActor(actorId).graphics.use(
-      new Polygon({
-        points: [vec(0, 0), vec(40, 0), vec(40, 40), vec(0, 40)],
-        color,
-      })
-    );
+    sprite.width = 40;
+    sprite.height = 40;
+
+    this.getActor(actorId).graphics.use(sprite);
 
     this.setOpponentDefense(slot, {
       type,
@@ -374,6 +373,8 @@ export class KOTEngine extends Engine {
       level: nextLevel,
       life: kingTowerAttributes[nextLevel - 1].life,
     };
+
+    this.getCallback("restoreLife")();
   }
 
   upgradeOpponentKingTower() {
@@ -383,6 +384,8 @@ export class KOTEngine extends Engine {
       level: nextLevel,
       life: kingTowerAttributes[nextLevel - 1].life,
     };
+
+    this.getCallback("restoreOpponentsLife")();
   }
 
   win() {

@@ -60,6 +60,10 @@ export const setupTowers = (
 ) => {
   const kingTower = addTower(game, sprites, false);
 
+  sprites.king.width = WIDTH;
+  sprites.king.height = HEIGHT;
+  kingTower.graphics.use(sprites.king);
+
   const firstTower = addTower(game, sprites, false, 1);
   const secondTower = addTower(game, sprites, false, 2);
   const thirdTower = addTower(game, sprites, false, 3);
@@ -93,6 +97,8 @@ export const setupOpponentTowers = (
   sprites: Record<string, Sprite>
 ) => {
   const kingTower = addTower(game, sprites, true);
+
+  kingTower.graphics.use(sprites.king);
 
   const firstTower = addTower(game, sprites, true, 1);
   const secondTower = addTower(game, sprites, true, 2);

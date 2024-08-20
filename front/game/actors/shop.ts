@@ -13,6 +13,7 @@ export const setupShop = (
 ) => {
   const MARGIN_BOTTOM = 130;
   const GAP = 20;
+  const WIDTH = 50;
   const HEIGHT = 50;
   const BOTTOM = CANVAS_HEIGHT - MARGIN_BOTTOM - HEIGHT;
   const LEFT = 20;
@@ -20,13 +21,16 @@ export const setupShop = (
   const archerTower = new Actor({
     x: LEFT,
     y: BOTTOM,
-    width: 50,
+    width: WIDTH,
     height: HEIGHT,
     color: Color.Blue,
     anchor: Vector.Zero,
   });
 
-  archerTower.on("pointerdown", () => {});
+  sprites.archer.width = WIDTH;
+  sprites.archer.height = HEIGHT;
+
+  archerTower.graphics.use(sprites.archer);
 
   const mageTower = new Actor({
     x: LEFT,
@@ -37,6 +41,11 @@ export const setupShop = (
     anchor: Vector.Zero,
   });
 
+  sprites.mage.width = WIDTH;
+  sprites.mage.height = HEIGHT;
+
+  mageTower.graphics.use(sprites.mage);
+
   const trapTower = new Actor({
     x: LEFT,
     y: BOTTOM - 2 * (HEIGHT + GAP),
@@ -45,6 +54,11 @@ export const setupShop = (
     color: Color.Yellow,
     anchor: Vector.Zero,
   });
+
+  sprites.canon.width = WIDTH;
+  sprites.canon.height = HEIGHT;
+
+  trapTower.graphics.use(sprites.canon);
 
   const mainTower = new Actor({
     x: LEFT,
@@ -55,13 +69,10 @@ export const setupShop = (
     anchor: Vector.Zero,
   });
 
-  const selector = new Actor({
-    x: LEFT,
-    y: BOTTOM,
-    radius: 10,
-    color: Color.Green,
-    anchor: Vector.Zero,
-  });
+  sprites.kingTower.width = WIDTH;
+  sprites.kingTower.height = HEIGHT;
+
+  mainTower.graphics.use(sprites.kingTower);
 
   game.add(archerTower);
   game.add(mageTower);
@@ -83,6 +94,23 @@ export const setupShop = (
         anchor: vec(0.5, 0.5),
       })
   );
+
+  sprites.one.width = 20;
+  sprites.one.height = 20;
+
+  sprites.two.width = 20;
+  sprites.two.height = 20;
+
+  sprites.three.width = 20;
+  sprites.three.height = 20;
+
+  sprites.four.width = 20;
+  sprites.four.height = 20;
+
+  firstSlotSelector.graphics.use(sprites.one);
+  secondSlotSelector.graphics.use(sprites.two);
+  thirdSlotSelector.graphics.use(sprites.three);
+  fourthSlotSelector.graphics.use(sprites.four);
 
   const toggleSelector = (pos: number) => {
     if (game.isShopOpen) {

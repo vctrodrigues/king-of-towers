@@ -45,38 +45,6 @@ export const gameController = (ws: WebSocket, dbService: DBService<Game>) => {
       }
     },
 
-    // defend: ({
-    //   game,
-    //   opponent,
-    //   damage,
-    //   mobs,
-    // }: {
-    //   game: Game;
-    //   opponent: string;
-    //   damage: number;
-    //   mobs: string[];
-    // }) => {
-    //   console.log(`> Defending tower`);
-
-    //   try {
-    //     const { game: _game, killedMobs } = _gameService.defend(
-    //       game,
-    //       opponent,
-    //       damage,
-    //       mobs
-    //     );
-
-    //     console.log(`> Tower defended: ${game.room}`);
-
-    //     return { game: _game, killedMobs };
-    //   } catch (error) {
-    //     console.log(`> Error defending game`);
-    //     ws.send(
-    //       serialize(EventName.GameDefend, { error: error.message }, false)
-    //     );
-    //   }
-    // },
-
     earn: ({
       game,
       user,
@@ -99,23 +67,6 @@ export const gameController = (ws: WebSocket, dbService: DBService<Game>) => {
         ws.send(serialize(EventName.GameEarn, { error: error.message }, false));
       }
     },
-
-    // spawn: ({ game, user }: { game: Game; user: string }) => {
-    //   console.log(`> Spawning mob`);
-
-    //   try {
-    //     const { game: updatedGame, mobs } = _gameService.spawn(game, user);
-
-    //     console.log(`> Mob spawned: ${game.room}`);
-
-    //     return { updatedGame, mobs };
-    //   } catch (error) {
-    //     console.log(`> Error spawning mob`);
-    //     ws.send(
-    //       serialize(EventName.GameSpawn, { error: error.message }, false)
-    //     );
-    //   }
-    // },
 
     attack: ({
       game,
