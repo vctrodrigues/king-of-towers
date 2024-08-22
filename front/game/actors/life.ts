@@ -131,7 +131,7 @@ export const setupOpponentsLifeBar = (game: KOTEngine) => {
   };
 
   const restoreLife = () => {
-    const lifeSpan = game.getActor("lifeSpan");
+    const lifeSpan = game.getActor("opponentsLifeSpan");
     const end = (lifeSpan.graphics.current as Line).end;
     const newEnd = vec(WIDTH, end.y);
 

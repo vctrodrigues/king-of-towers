@@ -479,7 +479,7 @@ class LoseScene extends Scene {
     this.add(bg);
 
     const label = new Label({
-      text: "Você Perdeu!",
+      text: "Você perdeu!",
       font: new Font({
         size: 48,
         bold: true,

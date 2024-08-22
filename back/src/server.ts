@@ -54,6 +54,7 @@ const pool: Record<
     user: User;
     timeout: NodeJS.Timeout;
     _gameController: ReturnType<typeof gameController>;
+    interval: NodeJS.Timeout;
   }
 > = {};
 
@@ -81,6 +82,7 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     user: null,
     timeout: null,
     _gameController,
+    interval: null,
   };
 
   const EVENTS = {
@@ -155,80 +157,8 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
           });
 
           room.users.forEach(({ session }) => {
-            pool[session].ws.send(serialize(EventName.RoomStart, room));
-            pool[session].ws.send(serialize(EventName.GameCreate, game));
+            pool[session].ws.send(serialize(EventName.RoomStart, {}));
           });
-
-          let interval: NodeJS.Timeout = null;
-
-          interval = setInterval(() => {
-            const [user1, user2] = room.users.filter(
-              ({ role }) => role === UserRole.Player
-            );
-
-            let _game = pool[user1.session]._gameController.earn({
-              game,
-              user: user1.session,
-              amount: COINS_FARM_RATE,
-            });
-
-            pool[user1.session].ws.send(
-              serialize(EventName.GameEarn, {
-                game: _game,
-                user: user1,
-                amount: COINS_FARM_RATE,
-              })
-            );
-
-            _game = pool[user2.session]._gameController.earn({
-              game,
-              user: user2.session,
-              amount: COINS_FARM_RATE,
-            });
-
-            pool[user2.session].ws.send(
-              serialize(EventName.GameEarn, {
-                game: _game,
-                user: user2,
-                amount: COINS_FARM_RATE,
-              })
-            );
-
-            // check if game is over
-            let loser = null;
-            let winner = null;
-
-            if (_game.users[user1.session].kingTower.life <= 0) {
-              loser = user1.session;
-              winner = user2.session;
-            } else if (_game.users[user2.session].kingTower.life <= 0) {
-              loser = user2.session;
-              winner = user1.session;
-            }
-
-            if (winner) {
-              pool[user1.session].ws.send(
-                serialize(EventName.GameOver, {
-                  room,
-                  win: user1.session === winner,
-                  winner,
-                  loser,
-                })
-              );
-
-              pool[user2.session].ws.send(
-                serialize(EventName.GameOver, {
-                  room,
-                  win: user2.session === winner,
-                  winner,
-                  loser,
-                })
-              );
-
-              _gameController.destroy({ room: room.uid });
-              clearInterval(interval);
-            }
-          }, UPDATING_INTERVAL);
         }
       }
     ),
@@ -297,6 +227,46 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
           })
         );
       });
+
+      // check if game is over
+      const [user1, user2] = room.users.filter(
+        (user) => user.role === UserRole.Player
+      );
+
+      let loser = null;
+      let winner = null;
+
+      if (payload.game.users[user1.session].kingTower.life <= 0) {
+        loser = user1.session;
+        winner = user2.session;
+      } else if (payload.game.users[user2.session].kingTower.life <= 0) {
+        loser = user2.session;
+        winner = user1.session;
+      }
+
+      if (winner) {
+        pool[user1.session].ws.send(
+          serialize(EventName.GameOver, {
+            room,
+            win: user1.session === winner,
+            winner,
+            loser,
+          })
+        );
+
+        pool[user2.session].ws.send(
+          serialize(EventName.GameOver, {
+            room,
+            win: user2.session === winner,
+            winner,
+            loser,
+          })
+        );
+
+        _gameController.destroy({ room: room.uid });
+        clearInterval(pool[user1.session].interval);
+        clearInterval(pool[user2.session].interval);
+      }
     }),
 
     [EventName.GameUpgradeDefense]: interceptor<{

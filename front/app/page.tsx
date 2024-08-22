@@ -17,6 +17,7 @@ import { useWebSocket } from "@/context/WebSocketContext";
 import { RoomService } from "@/services/room";
 import { UserService } from "@/services/user";
 import { GameBoard } from "@/components/GameBoard";
+import { Room } from "@/types/room";
 
 export default function Home() {
   const router = useRouter();
@@ -70,7 +71,7 @@ export default function Home() {
   }, [roomService, user]);
 
   const onLogout = useCallback(() => {
-    if (!user) {
+    if (!user.code) {
       return;
     }
 
@@ -87,9 +88,11 @@ export default function Home() {
 
   useEffect(() => {
     if (!user || !user.code) {
+      setRoom({} as Room);
+      finish();
       router.push("/login");
     }
-  }, [router, user]);
+  }, [finish, router, setRoom, user]);
 
   return (
     <Flex direction="column" className="home" minHeight="100vh">
