@@ -42,6 +42,7 @@ async function start(
 
   await game.start(loader);
   game.sprites = sprites;
+  game.setupScenes();
 
   setupBackground(game, sprites);
   setupLifeBar(game);

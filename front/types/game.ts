@@ -1,5 +1,6 @@
 import {
   Actor,
+  CollisionType,
   Color,
   Engine,
   EngineEvents,
@@ -12,6 +13,7 @@ import {
   Sprite,
   TextAlign,
   vec,
+  Vector,
 } from "excalibur";
 import { DefenseTower, DefenseTowerType, KingTower } from "./towers";
 import { User, UserAttributes } from "./user";
@@ -182,9 +184,6 @@ export class KOTEngine extends Engine {
 
     this.user = { ...INITIAL_USER_ATTRS };
     this.opponent = { ...INITIAL_USER_ATTRS };
-
-    this.add("win", new WinScene());
-    this.add("lose", new LoseScene());
   }
 
   private _updateCoins() {
@@ -403,16 +402,47 @@ export class KOTEngine extends Engine {
     });
     this.goToScene("lose");
   }
+
+  setupScenes() {
+    this.add("win", new WinScene(this.sprites));
+    this.add("lose", new LoseScene(this.sprites));
+  }
 }
 
 class WinScene extends Scene {
+  public sprites: Record<string, Sprite> = {};
+
+  constructor(sprites: Record<string, Sprite>) {
+    super();
+    this.sprites = sprites;
+  }
+
   onInitialize() {
+    const bg = new Actor({
+      x: 0,
+      y: 0,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      z: -99,
+      anchor: Vector.Zero,
+      collisionType: CollisionType.PreventCollision,
+    });
+
+    const background = this.sprites.background;
+    background.destSize.width = CANVAS_WIDTH;
+    background.destSize.height = CANVAS_HEIGHT;
+
+    bg.graphics.use(background);
+    this.add(bg);
+
     const label = new Label({
       text: "Você ganhou!",
       font: new Font({
         size: 48,
+        bold: true,
+        textAlign: TextAlign.Center,
       }),
-      color: Color.White,
+      color: Color.Black,
       anchor: vec(0.5, 0.5),
     });
 
@@ -423,14 +453,39 @@ class WinScene extends Scene {
 }
 
 class LoseScene extends Scene {
+  public sprites: Record<string, Sprite> = {};
+
+  constructor(sprites: Record<string, Sprite>) {
+    super();
+    this.sprites = sprites;
+  }
+
   onInitialize() {
+    const bg = new Actor({
+      x: 0,
+      y: 0,
+      width: CANVAS_WIDTH,
+      height: CANVAS_HEIGHT,
+      z: -99,
+      anchor: Vector.Zero,
+      collisionType: CollisionType.PreventCollision,
+    });
+
+    const background = this.sprites.background;
+    background.destSize.width = CANVAS_WIDTH;
+    background.destSize.height = CANVAS_HEIGHT;
+
+    bg.graphics.use(background);
+    this.add(bg);
+
     const label = new Label({
-      text: "Perdeu!",
+      text: "Você Perdeu!",
       font: new Font({
         size: 48,
+        bold: true,
         textAlign: TextAlign.Center,
       }),
-      color: Color.White,
+      color: Color.Black,
       anchor: vec(0.5, 0.5),
     });
 
