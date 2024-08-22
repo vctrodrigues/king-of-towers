@@ -10,8 +10,8 @@ import { UserCard } from "./UserCard";
 import { useRoomStore } from "@/stores/room";
 
 interface HeaderProps {
-  room?: Room;
-  user?: User;
+  room: Room;
+  user: User;
   isStarted: boolean;
   onLogout: () => void;
 }
@@ -30,7 +30,7 @@ export const Header = ({ room, user, isStarted, onLogout }: HeaderProps) => {
             height={113}
             alt="king of towers"
           />
-          {room && user && (
+          {room.uid && user.code && (
             <Flex align="center" justify="between" width="100%" pl="8">
               {isStarted ? (
                 <Flex align="center">

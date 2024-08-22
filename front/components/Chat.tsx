@@ -1,37 +1,50 @@
-import { Box, Button, Flex, TextField } from "@radix-ui/themes";
+import { Button, Flex, TextField } from "@radix-ui/themes";
 
 import { ChatMessage } from "./ChatMessage";
 
-import { Message } from "@/types/chat";
-import { useState } from "react";
+import { useCallback, useRef } from "react";
 import { User } from "@/types/user";
+import { useForm } from "react-hook-form";
+import { ChatService } from "@/services/chat";
+import { useChatStore } from "@/stores/chat";
+import { useWebSocket } from "@/context/WebSocketContext";
+import { useUserStore } from "@/stores/user";
+import { Message } from "@/types/chat";
 
 interface ChatProps {
   user: User;
 }
 
+interface ChatFormData {
+  text: string;
+}
+
 export const Chat = ({ user }: ChatProps) => {
-  const [message, setMessage] = useState<string>("");
-  const [testeMessage, setTestMessage] = useState<Message[]>([]);
-  const messages: Message[] = []; // to remove
+  const chatForm = useRef<HTMLFormElement>(null);
+  const chat = useChatStore((state) => state.chat);
 
-  const sendMessage = (message: any) => {
-    if (message) {
-      const date = new Date();
-      const newMessage: Message = {
-        text: message,
-        user: user,
-        date: date.toLocaleTimeString(),
-      };
-      messages.push(...testeMessage, newMessage);
+  const { ws } = useWebSocket();
+  const { register, setValue, handleSubmit } = useForm<ChatFormData>();
 
-      setTestMessage(messages);
-      setMessage("");
+  const { addMessage } = useChatStore();
 
-      const input: any = document.getElementById("input-text");
-      if (input) input.value = "";
-    }
-  };
+  const chatService = new ChatService({
+    ws,
+    addMessage,
+  });
+
+  const onSubmit = useCallback(() => {
+    chatForm.current?.submit();
+  }, []);
+
+  const onSendMessage = useCallback(
+    (data: ChatFormData) => {
+      chatService.sendMessage(data.text, user);
+      setValue("text", "");
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user]
+  );
 
   return (
     <Flex
@@ -47,7 +60,7 @@ export const Chat = ({ user }: ChatProps) => {
         className="max-h-full overflow-auto"
         width="400px"
       >
-        {testeMessage.map((message) => (
+        {chat.map((message: Message) => (
           <ChatMessage
             key={message.date}
             user={message.user}
@@ -57,19 +70,28 @@ export const Chat = ({ user }: ChatProps) => {
         ))}
       </Flex>
       <Flex direction="row" className="w-full h-fit">
-        <TextField.Root
-          onChange={(param) => setMessage(param.target?.value)}
-          id={"input-text"}
-          onKeyDown={(e) => (e.key === "Enter" ? sendMessage(message) : "")}
+        <form
+          ref={chatForm}
+          action=""
+          method=""
+          className="flex gap-2 w-full"
+          onSubmit={handleSubmit(onSendMessage)}
         >
-          <TextField.Slot></TextField.Slot>
-        </TextField.Root>
-        <Button
-          onClick={() => sendMessage(message)}
-          style={{ marginLeft: "10px" }}
-        >
-          Enviar
-        </Button>
+          <TextField.Root
+            id={"input-text"}
+            placeholder="Digite sua mensagem"
+            className="w-full"
+            {...register("text", { required: true })}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onSubmit();
+              }
+            }}
+          >
+            <TextField.Slot></TextField.Slot>
+          </TextField.Root>
+          <Button type="submit">Enviar</Button>
+        </form>
       </Flex>
     </Flex>
   );

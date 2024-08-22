@@ -28,6 +28,8 @@ import type { User } from "./types/user";
 import type { Room } from "./types/room";
 import type { Game } from "./types/game";
 import type { DefenseTowerType } from "./types/towers";
+import { Message } from "chat";
+import { chatController } from "./controllers/chat";
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -41,6 +43,9 @@ console.log("> Room DB initialized");
 
 const gameDB = dbService<Game>("room");
 console.log("> Game DB initialized");
+
+const chatDB = dbService<Message>("date");
+console.log("> Chat DB initialized");
 
 const pool: Record<
   string,
@@ -60,6 +65,7 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
   const _userController = userController(ws, userDB);
   const _roomController = roomController(ws, roomDB);
   const _gameController = gameController(ws, gameDB);
+  const _chatController = chatController(ws, chatDB);
 
   if (pool[session]) {
     console.log(`> Reconnected [${session}]`);
@@ -342,6 +348,17 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
             isOpponent: session !== user.session,
           })
         );
+      });
+    }),
+
+    [EventName.ChatMessage]: interceptor<{
+      user: User;
+      text: string;
+    }>(({ user, text }) => {
+      const message = _chatController.create({ user, text });
+
+      Object.keys(pool).forEach((session) => {
+        pool[session].ws.send(serialize(EventName.ChatMessage, message));
       });
     }),
   };

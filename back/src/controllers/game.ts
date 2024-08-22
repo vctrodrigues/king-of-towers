@@ -12,7 +12,6 @@ import { DefenseTowerType } from "towers";
 
 export const gameController = (ws: WebSocket, dbService: DBService<Game>) => {
   const _gameService = gameService(dbService);
-  const attackIntervals = new Map<string, NodeJS.Timeout>();
 
   return {
     create: ({ room, users }: { room: string; users: User[] }) => {
