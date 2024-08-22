@@ -5,14 +5,15 @@ import type {} from "@redux-devtools/extension";
 import type { User } from "@/types/user";
 
 interface UserState {
-  user?: User;
-  setUser: (user?: User) => void;
+  user: User;
+  setUser: (user: User) => void;
 }
 
 export const useUserStore = create<UserState>()(
   devtools(
     persist(
       (set) => ({
+        user: {} as User,
         setUser: (user) => set({ user }),
       }),
       {

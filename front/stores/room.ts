@@ -8,10 +8,10 @@ import { UserRoomState } from "@/enums/room";
 import { UserRole } from "@/enums/role";
 
 interface RoomState {
-  room?: Room;
+  room: Room;
   isStarted: boolean;
 
-  setRoom: (room?: Room) => void;
+  setRoom: (room: Room) => void;
   updateRoom: (room: Partial<Room>) => void;
   start: () => void;
   finish: () => void;
@@ -25,6 +25,7 @@ export const useRoomStore = create<RoomState>()(
   devtools(
     persist(
       (set, get) => ({
+        room: {} as Room,
         isStarted: false,
         setRoom: (room) => set({ room }),
         updateRoom: (room) =>
@@ -35,15 +36,16 @@ export const useRoomStore = create<RoomState>()(
         finish: () => set({ isStarted: false }),
         userState: (user?: User) =>
           user
-            ? get().room?.users.find(({ code }) => code === user.code)?.state ??
-              UserRoomState.Waiting
+            ? get().room?.users?.find(({ code }) => code === user.code)
+                ?.state ?? UserRoomState.Waiting
             : UserRoomState.Waiting,
         spectators: () =>
-          get().room?.users.filter(({ role }) => role === UserRole.Spectator) ??
-          [],
+          get().room?.users?.filter(
+            ({ role }) => role === UserRole.Spectator
+          ) ?? [],
         oponents: (user?: User) =>
           user
-            ? get().room?.users.filter(
+            ? get().room?.users?.filter(
                 ({ code, role }) =>
                   user.code !== code && role === UserRole.Player
               ) ?? []

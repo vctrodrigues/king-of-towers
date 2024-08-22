@@ -13,18 +13,18 @@ interface RoomProps {
 
 export const GameRoom = ({ user, room, userState, onStart }: RoomProps) => {
   return (
-    <Flex direction="column" gap="2">
+    <Flex direction="column" align="start" gap="2">
       <Text mb="4">Jogadores</Text>
-      {room.users.map((user) => (
+      {room?.users?.map((user) => (
         <UserCard key={user.code} user={user} />
       ))}
       <Button
         disabled={
           [UserRoomState.Ready, UserRoomState.Playing].includes(userState) ||
-          (room.users[0].code === user.code &&
-            (room.users.length < 2 ||
-              room.users
-                .slice(1)
+          (room?.users?.[0].code === user.code &&
+            (room?.users?.length < 2 ||
+              room?.users
+                ?.slice(1)
                 .some(
                   (user) =>
                     user.role !== "player" || user.state !== UserRoomState.Ready
@@ -36,7 +36,7 @@ export const GameRoom = ({ user, room, userState, onStart }: RoomProps) => {
         className="font-game max-w-[200px]"
         onClick={onStart}
       >
-        {room.users[0].code === user.code
+        {room?.users?.[0].code === user.code
           ? "Começar partida"
           : userState === UserRoomState.Waiting
           ? "Pronto"

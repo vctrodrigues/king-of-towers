@@ -4,6 +4,7 @@ import { IncomingMessage } from "http";
 import { appController } from "./controllers/app";
 import { userController } from "./controllers/user";
 import { roomController } from "./controllers/room";
+import { gameController } from "./controllers/game";
 
 import { dbService } from "./service/db";
 
@@ -13,21 +14,38 @@ import { deserialize, serialize } from "./utils/serialize";
 
 import { EventName } from "./enums/event";
 
-import { SECOND_IN_MILLIS, TIMEOUT_LIMIT } from "./const";
+import {
+  COINS_FARM_RATE,
+  SECOND_IN_MILLIS,
+  TIMEOUT_LIMIT,
+  UPDATING_INTERVAL,
+} from "./const";
+
+import { RoomState } from "./enums/room";
+import { UserRole } from "./enums/role";
 
 import type { User } from "./types/user";
 import type { Room } from "./types/room";
-import { RoomState } from "./enums/room";
-import { UserRole } from "./enums/role";
+import type { Game } from "./types/game";
+import type { DefenseTowerType } from "./types/towers";
+import { Message } from "chat";
+import { chatController } from "./controllers/chat";
 
 const wss = new WebSocketServer({ port: 8080 });
 
 console.log("> Server started");
 
 const userDB = dbService<User>("code");
-const roomDB = dbService<Room>("uid");
-
 console.log("> User DB initialized");
+
+const roomDB = dbService<Room>("uid");
+console.log("> Room DB initialized");
+
+const gameDB = dbService<Game>("room");
+console.log("> Game DB initialized");
+
+const chatDB = dbService<Message>("date");
+console.log("> Chat DB initialized");
 
 const pool: Record<
   string,
@@ -35,6 +53,7 @@ const pool: Record<
     ws: WebSocket;
     user: User;
     timeout: NodeJS.Timeout;
+    _gameController: ReturnType<typeof gameController>;
   }
 > = {};
 
@@ -45,6 +64,8 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
   const _appController = appController(ws);
   const _userController = userController(ws, userDB);
   const _roomController = roomController(ws, roomDB);
+  const _gameController = gameController(ws, gameDB);
+  const _chatController = chatController(ws, chatDB);
 
   if (pool[session]) {
     console.log(`> Reconnected [${session}]`);
@@ -59,6 +80,7 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
     ws,
     user: null,
     timeout: null,
+    _gameController,
   };
 
   const EVENTS = {
@@ -127,12 +149,218 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
         ) {
           _roomController.start({ uid: room.uid });
 
+          const game = _gameController.create({
+            room: room.uid,
+            users: room.users,
+          });
+
           room.users.forEach(({ session }) => {
             pool[session].ws.send(serialize(EventName.RoomStart, room));
+            pool[session].ws.send(serialize(EventName.GameCreate, game));
           });
+
+          let interval: NodeJS.Timeout = null;
+
+          interval = setInterval(() => {
+            const [user1, user2] = room.users.filter(
+              ({ role }) => role === UserRole.Player
+            );
+
+            let _game = pool[user1.session]._gameController.earn({
+              game,
+              user: user1.session,
+              amount: COINS_FARM_RATE,
+            });
+
+            pool[user1.session].ws.send(
+              serialize(EventName.GameEarn, {
+                game: _game,
+                user: user1,
+                amount: COINS_FARM_RATE,
+              })
+            );
+
+            _game = pool[user2.session]._gameController.earn({
+              game,
+              user: user2.session,
+              amount: COINS_FARM_RATE,
+            });
+
+            pool[user2.session].ws.send(
+              serialize(EventName.GameEarn, {
+                game: _game,
+                user: user2,
+                amount: COINS_FARM_RATE,
+              })
+            );
+
+            // check if game is over
+            let loser = null;
+            let winner = null;
+
+            if (_game.users[user1.session].kingTower.life <= 0) {
+              loser = user1.session;
+              winner = user2.session;
+            } else if (_game.users[user2.session].kingTower.life <= 0) {
+              loser = user2.session;
+              winner = user1.session;
+            }
+
+            if (winner) {
+              pool[user1.session].ws.send(
+                serialize(EventName.GameOver, {
+                  room,
+                  win: user1.session === winner,
+                  winner,
+                  loser,
+                })
+              );
+
+              pool[user2.session].ws.send(
+                serialize(EventName.GameOver, {
+                  room,
+                  win: user2.session === winner,
+                  winner,
+                  loser,
+                })
+              );
+
+              _gameController.destroy({ room: room.uid });
+              clearInterval(interval);
+            }
+          }, UPDATING_INTERVAL);
         }
       }
     ),
+
+    [EventName.GameBuy]: interceptor<{
+      uid: string;
+      user: User;
+      slot: number;
+      type: DefenseTowerType;
+    }>(({ uid, user, slot, type }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+      const payload = _gameController.buyDefenseTower({
+        game,
+        user: user.session,
+        slot,
+        type,
+      });
+
+      if (!payload) {
+        return;
+      }
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameBuy, {
+            ...payload,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.GameAttack]: interceptor<{
+      uid: string;
+      user: User;
+      damage: number;
+    }>(({ uid, user, damage }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+
+      const opponent = room.users.find(
+        ({ session }) => session !== user.session
+      );
+
+      if (!opponent) {
+        return;
+      }
+
+      const payload = _gameController.attack({
+        game,
+        opponent: opponent.session,
+        damage,
+      });
+
+      if (!payload) {
+        return;
+      }
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameAttack, {
+            ...payload,
+            damage,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.GameUpgradeDefense]: interceptor<{
+      uid: string;
+      user: User;
+      slot: number;
+    }>(({ uid, user, slot }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+      const payload = _gameController.upgradeDefenseTower({
+        game,
+        user: user.session,
+        slot,
+      });
+
+      if (!payload) {
+        return;
+      }
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameUpgradeDefense, {
+            ...payload,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.GameUpgradeKing]: interceptor<{
+      uid: string;
+      user: User;
+    }>(({ uid, user }) => {
+      const room = _roomController.findByUserSession(user.session);
+      let game = _gameController.get({ room: uid });
+      const payload = _gameController.upgradeKingTower({
+        game,
+        user: user.session,
+      });
+
+      if (!payload) {
+        return;
+      }
+
+      room.users.forEach(({ session }) => {
+        pool[session].ws.send(
+          serialize(EventName.GameUpgradeKing, {
+            ...payload,
+            isOpponent: session !== user.session,
+          })
+        );
+      });
+    }),
+
+    [EventName.ChatMessage]: interceptor<{
+      user: User;
+      text: string;
+    }>(({ user, text }) => {
+      const message = _chatController.create({ user, text });
+
+      Object.keys(pool).forEach((session) => {
+        pool[session].ws.send(serialize(EventName.ChatMessage, message));
+      });
+    }),
   };
 
   ws.on("message", (payload: string) => {

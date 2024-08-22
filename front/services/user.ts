@@ -4,44 +4,42 @@ import { WebSocketService } from "./ws";
 import { UserEvents } from "@/enums/events/user";
 
 import type { User } from "@/types/user";
-import type { WebSocketData } from "@/types/ws";
+import type { WebSockerError, WebSocketData } from "@/types/ws";
 
 interface UserServiceConfig {
   ws: WebSocketService;
-  setUser: (user?: User) => void;
+  setUser: (user: User) => void;
 }
 
 export class UserService {
   constructor(private config: UserServiceConfig) {
     this.config = config;
 
-    const createUser = <Data = User>(data: WebSocketData<Data>) => {
+    const createUser = (data: WebSocketData<User>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
       this.config.setUser(data.data as User);
     };
 
-    const retrieveUser = <Data = User>(data: WebSocketData<Data>) => {
-      console.log(`hello`);
-
+    const retrieveUser = (data: WebSocketData<User>) => {
       if (!data.success) {
-        this.config.setUser(undefined);
+        this.config.setUser({} as User);
         return;
       }
 
       this.config.setUser(data.data as User);
     };
 
-    const deleteUser = <Data = User>(data: WebSocketData<Data>) => {
+    const deleteUser = (data: WebSocketData<User>) => {
       if (!data.success) {
-        console.error(data.error);
+        console.error((data.data as WebSockerError).error);
         return;
       }
 
-      this.config.setUser(undefined);
+      this.config.setUser({} as User);
     };
 
     this.config.ws.on(UserEvents.Get, retrieveUser);

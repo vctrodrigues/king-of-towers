@@ -8,7 +8,6 @@ type UserConfig = {
 
 export type Room = {
   uid: string;
-  turn: User["session"];
   users: UserConfig[];
   winner?: User["session"];
 };

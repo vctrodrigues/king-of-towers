@@ -4,6 +4,7 @@ import { ExitIcon, LockClosedIcon } from "@radix-ui/react-icons";
 import { Flex, Text, Button, TextField } from "@radix-ui/themes";
 
 import { User } from "@/types/user";
+import { Chat } from "./Chat";
 
 export interface RoomFormData {
   code: string;
@@ -25,7 +26,7 @@ export const Lobby = ({
   const { register, handleSubmit } = useForm<RoomFormData>();
 
   return (
-    <>
+    <Flex direction="row" justify="between" className="w-full">
       <Flex
         direction="column"
         justify="between"
@@ -80,9 +81,8 @@ export const Lobby = ({
         </Flex>
       </Flex>
       <Flex>
-        <Text>Chat</Text>
-        {/* TODO: Implement chat component */}
+        <Chat user={user}/>
       </Flex>
-    </>
+    </Flex>
   );
 };
