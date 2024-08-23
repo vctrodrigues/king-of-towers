@@ -4,27 +4,21 @@
 
 ## Tecnologia
 
-Utilizamos duas principais tecnologias
-
-1. JavaScript/TypeScript
-2. WebSockets
-
-### Frontend
+### Front-end
 
 Para o front-end utilizamos:
-- React e TypeScript
-- Redux para gerenciamento de estado
-- Radix para estilização
-- NextJs
-- Excalibur como Game Engine
 
+- Next.js e TypeScript
+- Zustand para gerenciamento de estado
+- Radix como library de components
+- Excalibur como game engine
 
-### Backend
+### Back-end
 
 Para o back-end:
 
 - TypeScript
-- NodeJS (sem framework como Nest ou Express)
+- NodeJS (sem framework)
 
 ## Como executar
 
@@ -36,7 +30,7 @@ Para o back-end:
 ```bash
 cd front
 npm i
-npm run dev           
+npm run dev
 ```
 
 ### Executando backend
@@ -49,7 +43,7 @@ npm run start
 
 ## Como jogar
 
-1. Acesse: localhost:3000/login
+1. Acesse: localhost:3000
 2. Insira seu nome para o jogo
 3. Clique em entrar
 4. Você estará no lobby do jogo e poderá conversar em chat
@@ -58,6 +52,4 @@ npm run start
 7. Inicie a partida
 8. Divirta-se!
 
-## Importante
-- A Branch com o jogo estável é a feat/game;
-- Sempre garantir que o local storage do localhost esteja vazio antes de iniciar a partida.
+> Importante: Se acontecer algo fora do esperado, você pode limpar os dados do navegador: basta abrir as ferramentas de desenvolvedor, clicar na aba de `aplicação` e limpar os dados do `localStorage`.
