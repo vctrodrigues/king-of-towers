@@ -157,8 +157,48 @@ wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
           });
 
           room.users.forEach(({ session }) => {
-            pool[session].ws.send(serialize(EventName.RoomStart, {}));
+            pool[session].ws.send(serialize(EventName.RoomStart, room));
+            pool[session].ws.send(serialize(EventName.GameCreate, game));
           });
+
+          let interval: NodeJS.Timeout = null;
+
+          interval = setInterval(() => {
+            const [user1, user2] = room.users.filter(
+              ({ role }) => role === UserRole.Player
+            );
+
+            let _game = pool[user1.session]._gameController.earn({
+              game,
+              user: user1.session,
+              amount: COINS_FARM_RATE,
+            });
+
+            pool[user1.session].ws.send(
+              serialize(EventName.GameEarn, {
+                game: _game,
+                user: user1,
+                amount: COINS_FARM_RATE,
+              })
+            );
+
+            _game = pool[user2.session]._gameController.earn({
+              game,
+              user: user2.session,
+              amount: COINS_FARM_RATE,
+            });
+
+            pool[user2.session].ws.send(
+              serialize(EventName.GameEarn, {
+                game: _game,
+                user: user2,
+                amount: COINS_FARM_RATE,
+              })
+            );
+
+            pool[user1.session].interval = interval;
+            pool[user2.session].interval = interval;
+          }, UPDATING_INTERVAL);
         }
       }
     ),

@@ -53,7 +53,7 @@ export default function Home() {
 
   const onJoinRoom = useCallback(
     (data: RoomFormData) => {
-      if (!user) {
+      if (!user.code) {
         return;
       }
 
@@ -63,7 +63,7 @@ export default function Home() {
   );
 
   const onCreateRoom = useCallback(() => {
-    if (!user) {
+    if (!user.code) {
       return;
     }
 
@@ -79,7 +79,7 @@ export default function Home() {
   }, [user, userService]);
 
   const onStart = useCallback(() => {
-    if (!room || !user) {
+    if (!room.uid || !user.code) {
       return;
     }
 

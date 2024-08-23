@@ -2,7 +2,7 @@ import { Button, Flex, TextField } from "@radix-ui/themes";
 
 import { ChatMessage } from "./ChatMessage";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { User } from "@/types/user";
 import { useForm } from "react-hook-form";
 import { ChatService } from "@/services/chat";
@@ -28,10 +28,14 @@ export const Chat = ({ user }: ChatProps) => {
 
   const { addMessage } = useChatStore();
 
-  const chatService = new ChatService({
-    ws,
-    addMessage,
-  });
+  const chatService = useMemo(
+    () =>
+      new ChatService({
+        ws,
+        addMessage,
+      }),
+    [addMessage, ws]
+  );
 
   const onSubmit = useCallback(() => {
     chatForm.current?.submit();
@@ -42,8 +46,7 @@ export const Chat = ({ user }: ChatProps) => {
       chatService.sendMessage(data.text, user);
       setValue("text", "");
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [user]
+    [chatService, setValue, user]
   );
 
   return (

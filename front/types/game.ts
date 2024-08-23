@@ -345,24 +345,22 @@ export class KOTEngine extends Engine {
     return this.opponentDefenses[defenseId];
   }
 
-  attack(damage: number) {
-    const oldLife = this.opponent.kingTower.life;
-    this.opponent.kingTower.life -= damage;
-    const newLife = this.opponent.kingTower.life;
+  attack(kingTower: KingTower) {
+    const fullLife = kingTowerAttributes[kingTower.level - 1].life;
+    const life = kingTower.life;
 
-    const ratio = newLife / oldLife;
+    const percentage = life / fullLife;
 
-    this.getCallback("reduceOpponentsLife")(ratio);
+    this.getCallback("reduceOpponentsLife")(percentage);
   }
 
-  receiveAttack(damage: number) {
-    const oldLife = this.user.kingTower.life;
-    this.user.kingTower.life -= damage;
-    const newLife = this.user.kingTower.life;
+  receiveAttack(kingTower: KingTower) {
+    const fullLife = kingTowerAttributes[kingTower.level - 1].life;
+    const life = kingTower.life;
 
-    const ratio = newLife / oldLife;
+    const percentage = life / fullLife;
 
-    this.getCallback("reduceLife")(ratio);
+    this.getCallback("reduceLife")(percentage);
   }
 
   upgradeKingTower() {

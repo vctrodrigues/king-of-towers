@@ -54,6 +54,10 @@ export const gameService = (dbService: DBService<Game>) => ({
   attack: (game: Game, opponent: string, damage: number) => {
     game.users[opponent].kingTower.life -= damage;
 
+    console.log(
+      `> Game ${game.room} - King tower attacked by ${damage} | HP ${game.users[opponent].kingTower.life} left`
+    );
+
     dbService.update(game, { room: game.room });
 
     return {

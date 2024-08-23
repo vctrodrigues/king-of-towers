@@ -84,11 +84,11 @@ export const setupEvents = (game: KOTEngine, gameService: GameService) => {
 
   const attackTower = (event: GameEngineEvents[GameEvents.Attack]) => {
     if (event.isOpponent) {
-      game.receiveAttack(event.damage);
+      game.receiveAttack(event.kingTower);
       return;
     }
 
-    game.attack(event.damage);
+    game.attack(event.kingTower);
   };
 
   const upgradeTower = (event: GameEngineEvents[GameEvents.UpgradeDefense]) => {

@@ -44,8 +44,7 @@ export const setupLifeBar = (game: KOTEngine) => {
 
   const reduceLife = (ratio: number) => {
     const lifeSpan = game.getActor("lifeSpan");
-    const end = (lifeSpan.graphics.current as Line).end;
-    const newEnd = vec(end.x * ratio, end.y);
+    const newEnd = vec(WIDTH * ratio, 0);
 
     lifeSpan.graphics.use(
       new Line({
@@ -117,8 +116,7 @@ export const setupOpponentsLifeBar = (game: KOTEngine) => {
 
   const reduceLife = (ratio: number) => {
     const lifeSpan = game.getActor("opponentsLifeSpan");
-    const end = (lifeSpan.graphics.current as Line).end;
-    const newEnd = vec(end.x * ratio, end.y);
+    const newEnd = vec(WIDTH * ratio, 0);
 
     lifeSpan.graphics.use(
       new Line({

@@ -81,7 +81,9 @@ export const gameController = (ws: WebSocket, dbService: DBService<Game>) => {
       try {
         const payload = _gameService.attack(game, opponent, damage);
 
-        console.log(`> Tower attacked: ${game.room}`);
+        console.log(
+          `> Tower attacked: ${game.room} | Damage ${damage} | Opponent ${opponent}`
+        );
 
         return payload;
       } catch (error) {
