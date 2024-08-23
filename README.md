@@ -2,6 +2,11 @@
 
 > King of Towers é um jogo feito para a matéria de Jogos em Rede Multiusuários no Instituto Metrópole Digital/UFRN Tecnologia da Informação
 
+## Integrantes do grupo
+VICTOR RAPHAELL VIEIRA
+
+LUIS FELIPE ALIPIO
+
 ## Tecnologia
 
 ### Front-end
